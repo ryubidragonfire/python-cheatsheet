@@ -3,7 +3,8 @@ Commonly used methods in python for data science
 
 ## Dataframe
 
-### Load data
+### Data IO
+data-io.ipynb
 
 ### Subsetting data
 

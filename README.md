@@ -2,8 +2,6 @@
 
 Work in progress ...
 
-Commonly used methods in python for data science
-
 - dataframe-io
 
 - dataframe-selection

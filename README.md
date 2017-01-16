@@ -1,20 +1,19 @@
 # python-cheatsheet
+
+Work in progress ...
+
 Commonly used methods in python for data science
 
-## Dataframe
+- dataframe-io
 
-### Load data
+- dataframe-selection
 
-### Subsetting data
+- dataframe-description
 
-### Dataframe information
+- dataframe-cleansing
 
-### Unique value 
+- series
+
+- dataframe-categorical
 
 ### Concate / Merge 
-
-### Missing value
-
-### Columns
-
-### Rows

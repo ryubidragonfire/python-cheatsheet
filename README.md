@@ -14,4 +14,6 @@ Work in progress ...
 
 - dataframe-categorical
 
-### Concate / Merge 
+- Concate / Merge 
+
+- visualisation

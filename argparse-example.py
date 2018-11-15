@@ -1,5 +1,6 @@
 """
 Take command line arguments, and print them out
+ref: https://martin-thoma.com/how-to-parse-command-line-arguments-in-python/
 """
 
 import argparse

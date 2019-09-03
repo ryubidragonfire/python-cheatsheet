@@ -1,3 +1,6 @@
+#import sys
+#sys.path.insert(1, '/path/to/application/app/folder')
+
 def resize_images(datapath, width, height, save=False):
     print('resize_images.....')
     

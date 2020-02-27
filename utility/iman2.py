@@ -1,3 +1,78 @@
+###########################
+# Get Area with Grid lines
+##########################
+def getCoordWithManyLines(array, axis, distance, height, lower, upper, n):
+    '''
+    Implements locate coordinates where many lines exist in a local region by means of histogram.
+    
+    Argument:
+        array = 2D array to be processed, e.g. a binary image array
+        axis = 0 for vertical lines, 1 for horizontal lines
+        distance = distance between peaks of an histogram
+        height = minimum height of peaks required of an histogram
+        lower = lower limit of spacing between peaks
+        upper = upper limit of spacing between peaks
+        n = minimum number of consecutive lines required
+    
+    Return:
+        locWithManyLines = return a list of a pair of indexes, indicating the start and end of area of interest 
+    '''
+    
+    # Sum over an axis
+    axis_sum = np.sum(array, axis); #print(axis_sum.shape)
+
+    # Find peaks
+    peaks, _ = find_peaks(axis_sum, distance=distance, height=height); #print(peaks)
+    
+    # Get the distance between peaks
+    peaks_diff = np.diff(peaks); #print(peaks_diff)
+    
+    # Filter peaks that satisfied spacing specified by `lower` and `upper`
+    peaks_diff_mask = np.greater(peaks_diff, lower) & np.less(peaks_diff, upper); #print(peaks_diff_mask)
+    
+    # Grouped by distance between peaks
+    grouped_data = groupby(enumerate(peaks_diff_mask), key=lambda x: x[-1])
+
+    locWithManyLines = []
+
+    # Locate area where there are more than n number of consecutive lines
+    for k, g in grouped_data:
+        g = list(g)
+
+        if k == True and len(g) > n: # more than n consecutive lines
+            locWithManyLines.append((peaks[g[0][0]], peaks[g[-1][0]+1]))
+
+    return(coordWithManyLines) 
+
+############################################################################################################
+# Get Bounding Boxes given a list of coordinated of  multiple start and end of vertical and horizontal lines
+############################################################################################################
+
+def getBBoxes(vertlines_coordinates, horzlines_coordinates):
+    """
+    Implements extraction of grid region give coordinates of multiple start and end of vertical and horizontal lines.
+    
+    Arguments:
+        vertlines_coordinates, horzlines_coordinates
+        
+    Return:
+    A list of coordinates defining the top left and botton right of a list of grid areas.
+    
+    """
+    bbox_list = []
+
+    for h in horzlines_coordinates:
+        for v in vertlines_coordinates:
+            top_left = v[0], h[0]
+            bottom_right = v[1], h[1]
+            bbox_list.append([top_left, bottom_right])
+    
+    return(bbox_list)
+
+#######################################
+# Resize Image preserving aspect ratio
+#######################################
+
 def resize_image(image, width=None, height=None, inter=None):
     import cv2
     

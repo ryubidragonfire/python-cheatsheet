@@ -1,6 +1,16 @@
-###########################
-# Get Area with Grid lines
-##########################
+def plot2array(fig):
+    import numpy as np
+    '''
+    Implement: convert a matplotlib figure to a numpy array.
+    
+    Argument: 
+        fig = matplotlib.figure
+        arr = numpy array of height, width, depth
+    '''
+    arr = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+    arr = arr.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+    return arr
+
 def getCoordWithManyLines(array, axis, distance, height, lower, upper, n):
     '''
     Implements locate coordinates where many lines exist in a local region by means of histogram.
@@ -101,7 +111,7 @@ def resize_image(image, width=None, height=None, inter=None):
         dim = (width, int(h * r))
 
     # resize the image
-    img_resized = cv2.resize(image, dim, interpolation = inter)
+    img_resized = cv2.resize(image, dim, interpolation = cv2.INTER_CUBIC)
 
     # return the resized image
     return img_resized
@@ -120,6 +130,30 @@ def detect_rectangles2(img, contours, w_min, w_max, h_min, h_max):
             img_out = cv2.rectangle(img_copy, (x, y), (x+w, y+h), (0,255,0), 4)
             
     return img_out 
+
+def detect_rectangles2(img, contours, w_min, w_max, h_min, h_max, colour=None):
+    import numpy as np
+    import cv2
+
+    img_out = np.zeros_like(img)
+    img_copy = img.copy()
+    
+    rectangles = []
+    
+    for c in contours:
+        x, y, w, h = cv2.boundingRect(c)
+        
+        if colour == 'random':
+            col = (np.random.randint(50, 220), np.random.randint(50, 220), np.random.randint(50, 220))
+        else: 
+            col = (0,255,0)
+
+        if (w_min<w) & (w<w_max) & (h_min<h) & (h<h_max):
+            rectangles.append((x,y,w,h))
+            img_out = cv2.rectangle(img_copy, (x, y), (x+w, y+h), col , 5)
+            
+    return rectangles, img_out 
+
 
 def detect_rectangles(img, contours, w_min, w_max, h_min, h_max, within=None):
     import numpy as np

@@ -19,10 +19,10 @@ if __name__ == "__main__":
         sys.exit()
 
     # create OUTPUT_PATH if not existed
-    try:
-        os.mkdir(OUTPUT_PATH)
-    except OSError:
-        print ("Creation of the directory %s failed" % OUTPUT_PATH)
-    else:
-        print ("Successfully created the directory %s " % OUTPUT_PATH)
-
+    if not os.path.exists(OUTPUT_PATH):
+        try:
+            os.mkdir(OUTPUT_PATH)
+        except OSError:
+            print ("Creation of the directory %s failed" % OUTPUT_PATH)
+        else:
+            print ("Successfully created the directory %s " % OUTPUT_PATH)

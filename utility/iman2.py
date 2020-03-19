@@ -175,21 +175,6 @@ def resize_image(image, width=None, height=None, inter=None):
     # return the resized image
     return img_resized
 
-def detect_rectangles2(img, contours, w_min, w_max, h_min, h_max):
-    import numpy as np
-    import cv2
-
-    img_out = np.zeros_like(img)
-    img_copy = img.copy()
-    
-    for c in contours:
-        x, y, w, h = cv2.boundingRect(c)
-        
-        if (w_min<w) & (w<w_max) & (h_min<h) & (h<h_max):
-            img_out = cv2.rectangle(img_copy, (x, y), (x+w, y+h), (0,255,0), 4)
-            
-    return img_out 
-
 def detect_rectangles2(img, contours, w_min, w_max, h_min, h_max, colour=None):
     import numpy as np
     import cv2

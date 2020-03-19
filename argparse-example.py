@@ -1,16 +1,28 @@
-"""
-Take command line arguments, and print them out
-ref: https://martin-thoma.com/how-to-parse-command-line-arguments-in-python/
-"""
-
+import os
 import argparse
+import sys
 
-ap = argparse.ArgumentParser()
+if __name__ == "__main__":
 
-ap.add_argument('-i', '--input', required=True, help='Path to input folder')
-ap.add_argument('-o', '--output', help='Path to output folder')
-args = vars(ap.parse_args())
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--input_path", required=True, help="Path to a folder")
+    parser.add_argument("-o", "--output_path", required=True, help="Path to write the result to")
+    args = vars(parser.parse_args())
+    INPUT_PATH = args['input_path']
+    OUTPUT_PATH = args['output_path']
 
-print('input: ', args['input'])
-print('output: ', args['output'])
+    # check for valid folder
+    if os.path.exists(INPUT_PATH):
+        print('input path: ', INPUT_PATH)
+    else: 
+        print(INPUT_PATH, ' invalid.')
+        sys.exit()
+
+    # create OUTPUT_PATH if not existed
+    try:
+        os.mkdir(OUTPUT_PATH)
+    except OSError:
+        print ("Creation of the directory %s failed" % OUTPUT_PATH)
+    else:
+        print ("Successfully created the directory %s " % OUTPUT_PATH)
 

@@ -1,3 +1,62 @@
+####################
+def morph(bw, horizontal_size, vertical_size, iterations):
+    import numpy as np
+    
+    # Create the images that will use to extract the horizontal and vertical lines
+    horizontal = np.copy(bw)
+    vertical = np.copy(bw)
+    
+    horizontal = morph_horizontal(horizontal, horizontal_size, iterations)
+    vertical = morph_vertical(vertical, vertical_size, iterations)
+
+    horizontal_mask_invert_bool = create_horizontal_mask(horizontal)
+    vertical_mask_invert_bool = create_vertical_mask(vertical)
+    
+    new = bw * vertical_mask_invert_bool * horizontal_mask_invert_bool
+    
+    return(new)
+
+def create_vertical_mask(vertical):
+    import numpy as np
+    
+    vertical_mask_bool = vertical==255 # True
+    vertical_mask_invert_bool = np.invert(vertical_mask_bool)
+    return(vertical_mask_invert_bool)
+
+def create_horizontal_mask(horizontal):
+    import numpy as np
+    
+    horizontal_mask_bool = horizontal==255 # True
+    horizontal_mask_invert_bool = np.invert(horizontal_mask_bool)
+    return(horizontal_mask_invert_bool)
+
+def morph_horizontal(horizontal, horizontal_size, iterations):
+    import numpy as np
+    import cv2
+    
+    # Create structure element for extracting horizontal lines through morphology operations
+    horizontalStructure = cv2.getStructuringElement(cv2.MORPH_RECT, (horizontal_size, 1))
+
+    # Apply morphology operations
+    horizontal = cv2.erode(horizontal, horizontalStructure, iterations)
+    horizontal = cv2.dilate(horizontal, horizontalStructure, iterations)
+    
+    return(horizontal)
+
+def morph_vertical(vertical, vertical_size, iterations):
+    import cv2
+    
+    # Create structure element for extracting vertical lines through morphology operations
+    verticalStructure = cv2.getStructuringElement(cv2.MORPH_RECT, (1, vertical_size))
+
+    # Apply morphology operations
+    vertical = cv2.erode(vertical, verticalStructure, iterations)
+    vertical = cv2.dilate(vertical, verticalStructure, iterations)
+    
+    return(vertical)
+
+##################
+
 def plot2array(fig):
     import numpy as np
     '''

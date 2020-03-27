@@ -1,5 +1,178 @@
-####################
-def morph(bw, horizontal_size, vertical_size, iterations):
+# TODO: put into classes 
+
+def morphImageThickShaveVerticalHorizontal(bw):
+    """
+        morphImageThick implements:
+        - bw: input is binary image of dimension (h,w)
+       
+        Perform closing, then shaving rough edges. White is target. Black is background.
+        kernel are vertical and horizontal shape
+    """
+
+    # thicken
+    kernel = np.ones((15,3), np.uint8)  # vertical kernel
+    bw = cv2.dilate(bw, kernel, iterations=2)
+    bw = cv2.erode(bw, kernel, iterations=2) 
+
+    kernel = np.ones((3,15), np.uint8)  # horizontal kernel
+    bw = cv2.dilate(bw, kernel, iterations=2)
+    bw = cv2.erode(bw, kernel, iterations=2)
+
+    # shave
+    kernel = np.ones((15,3), np.uint8) 
+    bw = cv2.erode(bw, kernel, iterations=9)
+    bw = cv2.dilate(bw, kernel, iterations=9)
+
+    kernel = np.ones((3,15), np.uint8) 
+    bw = cv2.erode(bw, kernel, iterations=9)
+    bw = cv2.dilate(bw, kernel, iterations=9)
+
+    return bw
+
+def morphImageThickShave(bw, kernel_dim=(3,3), shave_iter=30):
+    """
+        morphImageThick implements:
+        - kernel_dim: kernel dimension, default is 3x3
+        - shave_iter: how many times to shave off rough edges, default is 30
+    
+        Perform closing, then shaving rough edges. White is target. Black is background.
+    """
+    kernel = np.ones(kernel_dim,np.uint8)
+
+    bw = cv2.dilate(bw, kernel, iterations=15)
+    bw = cv2.erode(bw, kernel, iterations=15)
+
+    bw = cv2.erode(bw, kernel, iterations=15)
+    bw = cv2.dilate(bw, kernel, iterations=15)
+
+    bw = cv2.erode(bw, kernel, iterations=shave_iter)
+    bw = cv2.dilate(bw, kernel, iterations=shave_iter)
+
+    return bw
+
+def morphImageThick(bw, kernel_dim=(3,3)):
+    """
+        morphImageThick implements:
+        - kernel_dim: kernel dimension, default is 3x3
+    
+        Perform closing, then shaving rough edges. White is target. Black is background.
+    """
+    
+    kernel = np.ones(kernel_dim,np.uint8)
+
+    bw = cv2.dilate(bw, kernel, iterations=15)
+    bw = cv2.erode(bw, kernel, iterations=15)
+
+    bw = cv2.erode(bw, kernel, iterations=15)
+    bw = cv2.dilate(bw, kernel, iterations=15)
+
+    return bw
+
+def morphImage(bw, kernel_dim=(3,3), iteration=1):
+    """
+        morphImage implements:
+        - kernel_dim: kernel dimension, default is 3x3
+        - iteration: how many times to perform dilation and erotion, default is 1
+
+        Perform closing. White is target. Black is background.
+
+        Todo: perform opening.
+    """
+    # closing gaps
+    kernel = np.ones(kernel_dim,np.uint8)
+    bw = cv2.dilate(bw, kernel, iterations=iteration)
+    bw = cv2.erode(bw, kernel, iterations=iteration)
+
+    return bw
+
+def drawRect(img, rect_coords):
+    """
+    drawRect implements:
+    - rect_coords: a list of rectangle coordinates
+    - resize image to the same size where the rectangle coordiantes are obtained
+    - superimposed rectangles onto image with random colours
+    """
+    import cv2
+    import numpy as np
+
+    np.random.seed(8)
+
+    img_out = np.zeros_like(img)
+
+    if len(rect_coords)>0:
+        # resize image to width=1000
+        img_resize = resize_image(img, width=1000)
+
+        for rect in rect_coords:
+            x, y, w, h = rect; 
+
+            col = (np.random.randint(50, 220), np.random.randint(50, 220), np.random.randint(50, 220))
+            img_out = cv2.rectangle(img_resize, (x, y), (x+w, y+h), col , 15)
+        
+    return img_out
+
+def processImage(src):
+    """
+        processImage implements:
+        - resize image keeping aspect ratio
+        - convert from colour to gray scale
+        - convert from gray scale to binary, i.e. black and white
+    """
+    # resize image to width=1000
+    src_resize = resize_image(src, width=1000)
+    
+    # convert to gray scale
+    if len(src.shape) != 2:
+        gray = cv2.cvtColor(src_resize, cv2.COLOR_BGR2GRAY)
+    else:
+        gray = src_resize
+        
+    # Gray scale to binary
+    blur = cv2.GaussianBlur(gray,(5,5),0)
+    ret,otsu = cv2.threshold(blur,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU); #print(ret)
+    _, bw = cv2.threshold(otsu, ret, 255, cv2.THRESH_BINARY_INV); bw.shape
+
+    return bw
+  
+def detectROI(bw, w_min, w_max, h_min, h_max):
+    
+    # 2D to 3D for colour image
+    bw_3d = np.repeat(bw[:, :, np.newaxis], 3, axis=2)
+    
+    # find contour
+    contours, hierarchy = cv2.findContours(bw, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+
+    # detect region of interest, and draw detection
+    rectangles, img_out_bw = detect_rectangles(bw_3d, contours, w_min, w_max, h_min, h_max, colour='random'); print(len(rectangles))
+    
+    return rectangles, img_out_bw
+
+def detect_rectangles(img, contours, w_min, w_max, h_min, h_max, colour=None):
+    import numpy as np
+    import cv2
+    
+    np.random.seed(8)
+    
+    img_out = np.zeros_like(img)
+    img_copy = img.copy()
+    
+    rectangles = []
+    
+    for c in contours:
+        x, y, w, h = cv2.boundingRect(c)
+        
+        if colour == 'random':
+            col = (np.random.randint(50, 220), np.random.randint(50, 220), np.random.randint(50, 220))
+        else: 
+            col = (0,255,0)
+
+        if (w_min<w) & (w<w_max) & (h_min<h) & (h<h_max):
+            rectangles.append((x,y,w,h))
+            img_out = cv2.rectangle(img_copy, (x, y), (x+w, y+h), col , 15)
+            
+    return rectangles, img_out
+
+def extractVerticalHorizontalLines(bw, horizontal_size, vertical_size, iterations):
     import numpy as np
     
     # Create the images that will use to extract the horizontal and vertical lines
@@ -54,8 +227,6 @@ def morph_vertical(vertical, vertical_size, iterations):
     vertical = cv2.dilate(vertical, verticalStructure, iterations)
     
     return(vertical)
-
-##################
 
 def plot2array(fig):
     import numpy as np
@@ -113,10 +284,6 @@ def getCoordWithManyLines(array, axis, distance, height, lower, upper, n):
 
     return(coordWithManyLines) 
 
-############################################################################################################
-# Get Bounding Boxes given a list of coordinated of  multiple start and end of vertical and horizontal lines
-############################################################################################################
-
 def getBBoxes(vertlines_coordinates, horzlines_coordinates):
     """
     Implements extraction of grid region give coordinates of multiple start and end of vertical and horizontal lines.
@@ -137,10 +304,6 @@ def getBBoxes(vertlines_coordinates, horzlines_coordinates):
             bbox_list.append([top_left, bottom_right])
     
     return(bbox_list)
-
-#######################################
-# Resize Image preserving aspect ratio
-#######################################
 
 def resize_image(image, width=None, height=None, inter=None):
     import cv2
@@ -174,54 +337,6 @@ def resize_image(image, width=None, height=None, inter=None):
 
     # return the resized image
     return img_resized
-
-def detect_rectangles2(img, contours, w_min, w_max, h_min, h_max, colour=None):
-    import numpy as np
-    import cv2
-
-    img_out = np.zeros_like(img)
-    img_copy = img.copy()
-    
-    rectangles = []
-    
-    for c in contours:
-        x, y, w, h = cv2.boundingRect(c)
-        
-        if colour == 'random':
-            col = (np.random.randint(50, 220), np.random.randint(50, 220), np.random.randint(50, 220))
-        else: 
-            col = (0,255,0)
-
-        if (w_min<w) & (w<w_max) & (h_min<h) & (h<h_max):
-            rectangles.append((x,y,w,h))
-            img_out = cv2.rectangle(img_copy, (x, y), (x+w, y+h), col , 5)
-            
-    return rectangles, img_out 
-
-
-def detect_rectangles(img, contours, w_min, w_max, h_min, h_max, within=None):
-    import numpy as np
-    import cv2
-
-    img_out = np.zeros_like(img)
-    img_copy = img.copy()
-    
-    for c in contours:
-        x, y, w, h = cv2.boundingRect(c)
-        
-        if within == 'part1':
-            [within_x_min, within_x_max, within_y_min, within_y_max] = [137-30, 157+30, 283-30, 810+30]
-
-            if (within_x_min < x) & (x < within_x_max) & (within_y_min < y) & (y < within_y_max):
-
-                if (w_min<w) & (w<w_max) & (h_min<h) & (h<h_max):
-                    img_out = cv2.rectangle(img_copy, (x, y), (x+w, y+h), (0,255,0), 4)
-
-        else:
-            if (w_min<w) & (w<w_max) & (h_min<h) & (h<h_max):
-                img_out = cv2.rectangle(img_copy, (x, y), (x+w, y+h), (0,255,0), 4)
-                
-    return img_out
 
 def sort_contours(cnts, method="left-to-right"):
     import numpy as np
@@ -414,8 +529,6 @@ def change_colour_model(img, mode):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     
     return img
-
-
 
 if __name__ == "__main__":
     main()
